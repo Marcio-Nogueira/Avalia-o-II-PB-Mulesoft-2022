@@ -1,0 +1,60 @@
+package br.com.compasso.pb_quiz.model;
+
+import javax.persistence.*;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "results")
+public class Result {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private String player;
+    private long hits;
+    private long misses;
+    private LocalDate matchDate = LocalDate.now();
+
+    public int getId() {
+        return id;
+    }
+
+    public String getPlayer() {
+        return player;
+    }
+
+    public Result setPlayer(String player) {
+        this.player = player;
+        return this;
+    }
+
+    public long getHits() {
+        return hits;
+    }
+
+    public Result setHits() {
+        hits = hits + 1;
+        System.out.println("Parabéns, você acertou");
+        return this;
+    }
+
+    public long getMisses() {
+        return misses;
+    }
+
+    public Result setMisses() {
+        misses = misses + 1;
+        System.out.println("Você errou");
+        return this;
+    }
+
+    public Result setMatchDate(LocalDate matchDate) {
+        this.matchDate = matchDate;
+        return this;
+    }
+
+    public LocalDate getMatchDate() {
+        return matchDate;
+    }
+
+}
