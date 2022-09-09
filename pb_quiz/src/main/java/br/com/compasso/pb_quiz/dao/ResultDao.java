@@ -18,7 +18,7 @@ public class ResultDao {
     }
 
     public List<Result> getAll() {
-        String jpql = "SELECT r FROM Result r";
+        String jpql = "SELECT r FROM Result r ORDER BY r.hits DESC";
         return em.createQuery(jpql, Result.class).getResultList();
     }
 
