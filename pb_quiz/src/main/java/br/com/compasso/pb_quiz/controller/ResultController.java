@@ -1,4 +1,4 @@
-package br.com.compasso.pb_quiz.main;
+package br.com.compasso.pb_quiz.controller;
 
 import br.com.compasso.pb_quiz.dao.QuestionDao;
 import br.com.compasso.pb_quiz.dao.ResultDao;
@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 
-public class main {
+public class ResultController {
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+    protected static void play(Scanner scanner) {
+
         java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE); //collection that turns off log from hibernate
         EntityManager em = JPAUtil.getEntityManager();
         QuestionDao questionDao = new QuestionDao(em);
@@ -23,52 +23,23 @@ public class main {
         ResultDao resultDao = new ResultDao(em);
         em.getTransaction().begin();
 
-        boolean closeMenu = false;
-        int option = 3;
-         do {
-             System.out.println("------PB_QUIZ------");
-             if (option == 3) {
-                 System.out.println("1 - Jogar");
-             } else {
-                 System.out.println("1 - Jogar novamente");
-             }
-             System.out.println("2 - Ver placar\n" +
-                     "0 - Sair");
-             try {
-                 option = Integer.parseInt(scanner.nextLine());
-             } catch (NumberFormatException ex) {
-                 System.out.println("NumberFormat Exception: entrada inválida");
-             }
-            switch (option) {
-                case 1:
-                    System.out.println("Jogando");
-                    play(scanner, em, questionDao, result, resultDao);
-                    option = 4;
-                    break;
-                case 2:
-                    System.out.println("vendo placar");
-                    showScore(resultDao);
-                    break;
-                case 0:
-                    System.out.println("Saindo");
-                    closeMenu = true;
-                    break;
-                default:
-                    System.out.println("Digite uma opção válida");
+        List<Question> questions = questionDao.getActives();
+        try {
+            if (questions.size() < 1) {
+                throw new NoDataException("Ainda não foram adcionadas nenhuma questão a base de dados, por favor adcione" +
+                        " questões ou contate o administrador.");
             }
-        }while (!closeMenu);
-
-        em.close();
-    }
-
-    private static void play(Scanner scanner, EntityManager em, QuestionDao questionDao, Result result, ResultDao resultDao) {
+        } catch (NoDataException ex) {
+            String msg = ex.getMessage();
+            System.out.println(msg);
+            System.exit(0);
+        }
 
         System.out.print("Digite seu nome: ");
         String name = scanner.nextLine();
         result.setPlayer(name);
 
         System.out.println("Responda com verdadeiro ou falso as questões abaixo");
-        List<Question> questions = questionDao.getActives();
         for (int i = 0; i < questions.size(); i++) {
             System.out.println("Questão " + (i+1) + ": " + questions.get(i).getQuestion());
             String answer = scanner.nextLine();
@@ -83,16 +54,34 @@ public class main {
                 i--;
             }
         }
+
         System.out.println("Você acertou " + result.getHits() + " questões");
         resultDao.addResult(result);
         em.getTransaction().commit();
+        em.close();
     }
 
-    private static void showScore(ResultDao resultDao) {
+    protected static void showScore() {
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE); //collection that turns off log from hibernate
+        EntityManager em = JPAUtil.getEntityManager();
+        ResultDao resultDao = new ResultDao(em);
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         List<Result> all = resultDao.getAll();
-        all.forEach(r -> System.out.println("JOGADOR: " + r.getPlayer() + "\t" +
-                "\tACERTOS: " + r.getHits() + "\tDATA: " + r.getMatchDate().format(formatter)
+        try {
+            if (all.size() < 1) {
+                throw new NoDataException("Ainda não há dados no placar, por favor jogue uma partida e depois volte aqui pra conferir.");
+            }
+        } catch (NoDataException ex) {
+            String msg = ex.getMessage();
+            System.out.println(msg);
+        }
+
+        String leftAlignFormat = " %-25s %-8s %-4d %-6s %-12s %n";
+        all.forEach(r -> System.out.format(leftAlignFormat,"JOGADOR: " + r.getPlayer(),
+                "ACERTOS: ", r.getHits(), "\tDATA: ", r.getMatchDate().format(formatter).toString()
         ));
+
+        em.close();
     }
 }

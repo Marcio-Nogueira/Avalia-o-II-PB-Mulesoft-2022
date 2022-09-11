@@ -36,12 +36,4 @@ public class Question {
         return this;
     }
 
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public Question setActive(boolean active) {
-        this.isActive = active;
-        return this;
-    }
 }
