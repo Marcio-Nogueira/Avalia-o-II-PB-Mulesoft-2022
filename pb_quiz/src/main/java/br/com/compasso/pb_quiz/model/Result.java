@@ -13,11 +13,7 @@ public class Result {
     private String player;
     private long hits;
     private long misses;
-    private LocalDate matchDate = LocalDate.now();
-
-    public int getId() {
-        return id;
-    }
+    private final LocalDate matchDate = LocalDate.now();
 
     public String getPlayer() {
         return player;
@@ -45,11 +41,6 @@ public class Result {
     public Result setMisses() {
         misses = misses + 1;
         System.out.println("Você errou");
-        return this;
-    }
-
-    public Result setMatchDate(LocalDate matchDate) {
-        this.matchDate = matchDate;
         return this;
     }
 

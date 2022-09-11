@@ -10,20 +10,30 @@ import javax.persistence.EntityManager;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
 
 public class main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE); //collection that turns off log from hibernate
         EntityManager em = JPAUtil.getEntityManager();
+        QuestionDao questionDao = new QuestionDao(em);
+        Result result = new Result();
+        ResultDao resultDao = new ResultDao(em);
         em.getTransaction().begin();
 
         boolean closeMenu = false;
+        int option = 3;
          do {
-             System.out.println("1 - Jogar novamente\n" +
-                     "2 - Ver placar\n" +
+             System.out.println("------PB_QUIZ------");
+             if (option == 3) {
+                 System.out.println("1 - Jogar");
+             } else {
+                 System.out.println("1 - Jogar novamente");
+             }
+             System.out.println("2 - Ver placar\n" +
                      "0 - Sair");
-             int option = 3;
              try {
                  option = Integer.parseInt(scanner.nextLine());
              } catch (NumberFormatException ex) {
@@ -32,42 +42,39 @@ public class main {
             switch (option) {
                 case 1:
                     System.out.println("Jogando");
-                    play(em, scanner);
-                    System.out.flush();
+                    play(scanner, em, questionDao, result, resultDao);
+                    option = 4;
                     break;
                 case 2:
                     System.out.println("vendo placar");
-                    showScore(em);
+                    showScore(resultDao);
                     break;
                 case 0:
                     System.out.println("Saindo");
                     closeMenu = true;
+                    break;
                 default:
                     System.out.println("Digite uma opção válida");
-
-
             }
-        }while (closeMenu == false);
+        }while (!closeMenu);
 
-        em.getTransaction().commit();
         em.close();
     }
 
-    private static void play(EntityManager em, Scanner scanner) {
+    private static void play(Scanner scanner, EntityManager em, QuestionDao questionDao, Result result, ResultDao resultDao) {
 
-        Result result = new Result();
         System.out.print("Digite seu nome: ");
         String name = scanner.nextLine();
         result.setPlayer(name);
 
-        QuestionDao questionDao = new QuestionDao(em);
+        System.out.println("Responda com verdadeiro ou falso as questões abaixo");
         List<Question> questions = questionDao.getActives();
         for (int i = 0; i < questions.size(); i++) {
             System.out.println("Questão " + (i+1) + ": " + questions.get(i).getQuestion());
             String answer = scanner.nextLine();
-            if (answer.equalsIgnoreCase("verdadeiro") && questions.get(i).isAnswer() == true ) {
+            if (answer.equalsIgnoreCase("verdadeiro") && questions.get(i).isAnswer()) {
                 result.setHits();
-            } else if (answer.equalsIgnoreCase("falso") && questions.get(i).isAnswer() == false) {
+            } else if (answer.equalsIgnoreCase("falso") && !questions.get(i).isAnswer()) {
                 result.setHits();
             } else if (answer.equalsIgnoreCase("verdadeiro") || answer.equalsIgnoreCase("falso")) {
                 result.setMisses();
@@ -76,14 +83,12 @@ public class main {
                 i--;
             }
         }
-
-        ResultDao resultDao = new ResultDao(em);
-        System.out.println(result.getMisses());
+        System.out.println("Você acertou " + result.getHits() + " questões");
         resultDao.addResult(result);
+        em.getTransaction().commit();
     }
 
-    private static void showScore(EntityManager em) {
-        ResultDao resultDao = new ResultDao(em);
+    private static void showScore(ResultDao resultDao) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         List<Result> all = resultDao.getAll();
         all.forEach(r -> System.out.println("JOGADOR: " + r.getPlayer() + "\t" +
