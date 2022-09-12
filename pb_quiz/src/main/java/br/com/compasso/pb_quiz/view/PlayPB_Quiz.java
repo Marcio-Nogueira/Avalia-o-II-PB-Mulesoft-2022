@@ -13,7 +13,7 @@ public class PlayPB_Quiz extends ResultController {
         int option = 3;
          do {
              System.out.println("------PB_QUIZ------");
-             if (option <= 3) {
+             if (option == 3) {
                  System.out.println("1 - Jogar");
              } else {
                  System.out.println("1 - Jogar novamente");
@@ -35,6 +35,7 @@ public class PlayPB_Quiz extends ResultController {
                     System.out.println("Carregando...");
                     System.out.println("PLACAR");
                     showScore();
+                    option = 4;
                     break;
                 case 0:
                     System.out.println("Fechando aplicação");

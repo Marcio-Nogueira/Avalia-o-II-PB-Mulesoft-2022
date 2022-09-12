@@ -34,10 +34,6 @@ public class Result {
         return this;
     }
 
-    public long getMisses() {
-        return misses;
-    }
-
     public Result setMisses() {
         misses = misses + 1;
         System.out.println("Você errou");

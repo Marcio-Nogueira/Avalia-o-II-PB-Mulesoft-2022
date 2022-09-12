@@ -22,11 +22,6 @@ public class Question {
         return question;
     }
 
-    public Question setQuestion(String question) {
-        this.question = question;
-        return this;
-    }
-
     public boolean isAnswer() {
         return answer;
     }
